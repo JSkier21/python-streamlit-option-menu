@@ -27,6 +27,17 @@ from canlog import read_log  # noqa: E402
 NOISY_BYTE_THRESHOLD = 16
 
 
+def capture_vehicle(log_path: str) -> str | None:
+    """Read the vehicle field from a capture's .meta sidecar, if present."""
+    meta = Path(log_path).with_suffix(".meta")
+    if not meta.exists():
+        return None
+    for line in meta.read_text(errors="replace").splitlines():
+        if line.startswith("vehicle:"):
+            return line.split(":", 1)[1].strip()
+    return None
+
+
 def profile(path: str) -> dict[tuple[str, int], list[set[int]]]:
     """Map (id_hex, dlc) -> per-byte sets of observed values."""
     seen: dict[tuple[str, int], list[set[int]]] = {}
@@ -76,12 +87,29 @@ def main() -> int:
     ap.add_argument("event")
     ap.add_argument("-n", "--top", type=int, default=15, help="candidates to show")
     ap.add_argument("--all", action="store_true", help="include noisy bytes")
+    ap.add_argument("--force", action="store_true",
+                    help="diff anyway when the captures are from different vehicles")
     args = ap.parse_args()
 
     for p in (args.baseline, args.event):
         if not Path(p).exists():
             print(f"error: no such file: {p}", file=sys.stderr)
             return 1
+
+    # Diffing captures from two different cars produces confident nonsense:
+    # every ID looks novel. Refuse rather than mislead.
+    v_base = capture_vehicle(args.baseline)
+    v_event = capture_vehicle(args.event)
+    if v_base and v_event and v_base != v_event:
+        print(f"error: these captures are from different vehicles "
+              f"('{v_base}' and '{v_event}').", file=sys.stderr)
+        print("Diffing across cars reports every ID as novel and means nothing.",
+              file=sys.stderr)
+        print("Pass --force if you genuinely intend this.", file=sys.stderr)
+        if not args.force:
+            return 1
+    if v_base and v_event and v_base == v_event:
+        print(f"vehicle:  {v_base}")
 
     base = profile(args.baseline)
     event = profile(args.event)

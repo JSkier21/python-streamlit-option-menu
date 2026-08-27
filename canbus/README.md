@@ -56,11 +56,15 @@ before investing in captures.
 ### 3. Capture
 
 ```bash
-./capture.sh baseline -t 60                      # touch nothing
-./capture.sh avh-button -t 60 -n "pressed x8"    # one control, repeatedly
+VEHICLE=crosstrek ./capture.sh baseline -t 60                   # touch nothing
+VEHICLE=crosstrek ./capture.sh avh-button -t 60 -n "pressed x8" # one control, repeatedly
 ```
 
-Writes `logs/<label>-<timestamp>.log` in candump log format plus a `.meta`
+Always set `VEHICLE`. Captures land in `logs/<vehicle>/` and the sidecar records
+which car they came from; `event_diff.py` refuses to diff across vehicles, because
+doing so reports every ID as novel and means nothing.
+
+Writes `logs/<vehicle>/<label>-<timestamp>.log` in candump log format plus a `.meta`
 sidecar recording the interface config, so a driveway capture stays
 interpretable later.
 
@@ -97,6 +101,36 @@ garbage that looks plausible.
 Check opendbc master for a newer generated Subaru file before assuming the 2017
 one is the best available.
 
+## Second vehicle: 2021 Sienna
+
+The tools are not Crosstrek-specific &mdash; J1962 is J1962 and SocketCAN is
+SocketCAN. A 2021 Sienna makes a better *first* target than the Crosstrek does,
+because Toyota is the best-covered marque in opendbc, so `decode.py` has real
+signal definitions to check your chain against. Validating the whole pipeline on
+a car where the answers are known separates "my tooling is broken" from "this car
+is hard" before you face a platform where nothing is documented.
+
+**It reads fine. It is a dead end for frame injection.** The 2021&ndash;2023
+Sienna Hybrid ships Toyota's SecOC (also called TSK / ECU Security Key), which
+appends a truncated MAC plus a freshness value &mdash; trip counter, reset
+counter, message counter &mdash; to safety-critical frames. SecOC authenticates
+rather than encrypts, so capture and decode are unaffected. Replay is not:
+a captured frame replayed later carries a stale freshness value and is rejected.
+
+Whether the 2024 Crosstrek carries anything equivalent is an open question worth
+answering early, since it decides whether the auto-enable idea is viable at all
+on that car.
+
+- [SecOC key extraction, 2021 RAV4 Prime](https://icanhack.nl/blog/secoc-key-extraction/)
+- [optskug/docs &mdash; TSK / SecOC documentation](https://github.com/optskug/docs)
+
+### Never bridge two vehicles
+
+Do not run both adapters into two different cars from the same laptop at once.
+The USB shields tie both vehicles' chassis grounds together through the laptop.
+One car at a time; the second adapter is for a second bus on the *same* car, or
+for the bench.
+
 ## Layout
 
 ```
@@ -105,7 +139,7 @@ capture.sh          named capture with metadata sidecar
 tools/canlog.py     candump log parser (classic + FD, 11- and 29-bit IDs)
 tools/event_diff.py isolate the frame behind a control input
 tools/decode.py     DBC coverage report and signal decode
-logs/               captures land here (git-ignored)
+logs/<vehicle>/     captures land here (git-ignored)
 ```
 
 ## Planned: auto-enable a driver-assist feature at startup

@@ -14,7 +14,11 @@
 set -euo pipefail
 
 IFACE="${IFACE:-can0}"
-OUTDIR="${OUTDIR:-$(dirname "$0")/logs}"
+# Captures from different vehicles must never be diffed against each other, so
+# each vehicle gets its own log directory and every capture records which car
+# it came from.  Set VEHICLE before capturing:  VEHICLE=sienna ./capture.sh ...
+VEHICLE="${VEHICLE:-unset}"
+OUTDIR="${OUTDIR:-$(dirname "$0")/logs/$VEHICLE}"
 LABEL=""
 SECS=""
 NOTE=""
@@ -42,6 +46,7 @@ STAMP="$(date +%Y%m%d-%H%M%S)"
 BASE="$OUTDIR/${LABEL}-${STAMP}"
 
 {
+  echo "vehicle:   $VEHICLE"
   echo "label:     $LABEL"
   echo "started:   $(date -Is)"
   echo "interface: $IFACE"
@@ -50,6 +55,13 @@ BASE="$OUTDIR/${LABEL}-${STAMP}"
   ip -details link show "$IFACE" | sed 's/^/  /'
 } > "$BASE.meta"
 
+if [[ "$VEHICLE" == "unset" ]]; then
+  echo "WARNING: VEHICLE is unset. With more than one car in play, an unlabelled" >&2
+  echo "         capture is one you cannot safely diff later.  VEHICLE=crosstrek ./capture.sh ..." >&2
+  echo >&2
+fi
+
+echo "Vehicle:   $VEHICLE"
 echo "Recording -> $BASE.log"
 [[ -n "$SECS" ]] && echo "Duration: ${SECS}s" || echo "Ctrl-C to stop."
 echo
