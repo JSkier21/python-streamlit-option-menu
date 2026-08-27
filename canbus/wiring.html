@@ -1,0 +1,551 @@
+<title>Crosstrek CAN Tap</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+
+<style>
+:root{
+  --paper:#eceff3; --surface:#ffffff; --surface-2:#f5f7f9;
+  --ink:#151b22; --ink-2:#54606c; --ink-3:#7b8792;
+  --rule:#d2dae1; --rule-2:#e2e8ed;
+  --canh:#a8560a; --canl:#0d6e66; --stop:#a92318; --ok:#2f6d3f;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0f141a; --surface:#171e26; --surface-2:#1c242d;
+    --ink:#e7edf3; --ink-2:#96a3b0; --ink-3:#6c7985;
+    --rule:#2b343e; --rule-2:#222a33;
+    --canh:#f0a63f; --canl:#43c3b1; --stop:#f2705f; --ok:#68c07f;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0f141a; --surface:#171e26; --surface-2:#1c242d;
+  --ink:#e7edf3; --ink-2:#96a3b0; --ink-3:#6c7985;
+  --rule:#2b343e; --rule-2:#222a33;
+  --canh:#f0a63f; --canl:#43c3b1; --stop:#f2705f; --ok:#68c07f;
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--paper); color:var(--ink);
+  font:400 16px/1.6 "IBM Plex Sans",system-ui,-apple-system,sans-serif;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:860px; margin:0 auto; padding:0 24px 96px}
+
+/* ---- masthead ---- */
+header.mast{border-bottom:2px solid var(--ink); margin-bottom:44px; padding:56px 0 18px}
+.kicker{
+  font:600 12px/1 "IBM Plex Mono",monospace; letter-spacing:.16em;
+  text-transform:uppercase; color:var(--canh); margin:0 0 14px
+}
+h1{
+  font:700 clamp(40px,8vw,68px)/0.94 "Barlow Condensed",Impact,sans-serif;
+  letter-spacing:-.01em; text-transform:uppercase; margin:0 0 14px; text-wrap:balance;
+}
+.dek{margin:0; max-width:62ch; color:var(--ink-2); font-size:17px}
+.specline{
+  display:flex; flex-wrap:wrap; gap:6px 20px; margin-top:22px;
+  font:500 12.5px/1 "IBM Plex Mono",monospace; color:var(--ink-3);
+}
+.specline b{color:var(--ink-2); font-weight:500}
+
+/* ---- sections ---- */
+section{margin:0 0 56px}
+.shead{display:flex; align-items:baseline; gap:14px; border-bottom:1px solid var(--rule); padding-bottom:10px; margin-bottom:22px}
+.snum{font:500 13px/1 "IBM Plex Mono",monospace; color:var(--canh)}
+h2{font:600 clamp(23px,4vw,30px)/1.15 "Barlow Condensed",sans-serif; text-transform:uppercase;
+   letter-spacing:.01em; margin:0; text-wrap:balance}
+p{max-width:66ch; margin:0 0 16px}
+strong{font-weight:600}
+a{color:var(--canh)}
+
+/* ---- figures ---- */
+figure{margin:26px 0; background:var(--surface); border:1px solid var(--rule);
+       border-radius:3px; padding:22px 20px 16px; overflow-x:auto}
+figure svg{display:block; width:100%; max-width:100%; height:auto; color:var(--ink)}
+figcaption{margin-top:16px; padding-top:12px; border-top:1px solid var(--rule-2);
+           font-size:13.5px; line-height:1.5; color:var(--ink-2); max-width:70ch}
+
+/* svg primitives */
+.d-box{fill:var(--surface-2); stroke:currentColor; stroke-width:1.5}
+.d-shell{fill:var(--surface-2); stroke:currentColor; stroke-width:1.75}
+.d-pin{fill:var(--surface); stroke:var(--ink-3); stroke-width:1.25}
+.d-lbl{fill:currentColor; font:600 13px "Barlow Condensed",sans-serif; letter-spacing:.04em; text-transform:uppercase}
+.d-txt{fill:currentColor; font:400 12.5px "IBM Plex Sans",sans-serif}
+.d-num{fill:var(--ink-2); font:500 10.5px "IBM Plex Mono",monospace}
+.d-sub{fill:var(--ink-3); font:400 11px "IBM Plex Sans",sans-serif}
+.wh{stroke:var(--canh); stroke-width:2.75; fill:none; stroke-linecap:round}
+.wl{stroke:var(--canl); stroke-width:2.75; fill:none; stroke-linecap:round}
+.wg{stroke:var(--ink-3); stroke-width:2.75; fill:none; stroke-linecap:round}
+.wx{stroke:var(--stop); stroke-width:2.25; fill:none; stroke-dasharray:6 5; stroke-linecap:round}
+.wn{stroke:currentColor; stroke-width:1.5; fill:none}
+.th{fill:var(--canh)} .tl{fill:var(--canl)} .tx{fill:var(--stop)} .tk{fill:var(--ok)}
+.pin-h{stroke:var(--canh); stroke-width:3; fill:var(--surface)}
+.pin-l{stroke:var(--canl); stroke-width:3; fill:var(--surface)}
+.pin-g{stroke:var(--ink-2); stroke-width:3; fill:var(--surface)}
+.pin-x{stroke:var(--stop); stroke-width:3; fill:var(--surface)}
+
+/* ---- table ---- */
+.tbl-wrap{overflow-x:auto; margin:22px 0}
+table{border-collapse:collapse; width:100%; min-width:560px; font-size:14.5px}
+th{font:600 11.5px/1 "IBM Plex Mono",monospace; letter-spacing:.1em; text-transform:uppercase;
+   color:var(--ink-3); text-align:left; padding:0 14px 9px 0; border-bottom:1px solid var(--rule)}
+td{padding:11px 14px 11px 0; border-bottom:1px solid var(--rule-2); vertical-align:top}
+td.pin{font:500 14px "IBM Plex Mono",monospace; font-variant-numeric:tabular-nums; white-space:nowrap}
+tr.no td{color:var(--ink-2)}
+.swatch{display:inline-block; width:10px; height:10px; border-radius:2px; margin-right:8px; vertical-align:baseline}
+
+/* ---- callouts ---- */
+.call{border-left:3px solid var(--stop); background:var(--surface); padding:16px 18px;
+      margin:24px 0; border-radius:0 3px 3px 0}
+.call.warn{border-left-color:var(--canh)}
+.call h3{font:600 12px/1 "IBM Plex Mono",monospace; letter-spacing:.12em; text-transform:uppercase;
+         margin:0 0 9px; color:var(--stop)}
+.call.warn h3{color:var(--canh)}
+.call p{margin:0; font-size:14.5px; color:var(--ink-2); max-width:64ch}
+.call p + p{margin-top:10px}
+
+/* ---- code ---- */
+pre{background:var(--surface); border:1px solid var(--rule); border-radius:3px;
+    padding:15px 17px; overflow-x:auto; margin:18px 0;
+    font:400 13px/1.65 "IBM Plex Mono",monospace; color:var(--ink)}
+pre .c{color:var(--ink-3)}
+code{font:400 13.5px "IBM Plex Mono",monospace; background:var(--surface-2);
+     padding:1px 5px; border-radius:2px}
+pre code{background:none; padding:0; font-size:inherit}
+
+ul{max-width:66ch; padding-left:20px; margin:0 0 16px}
+li{margin-bottom:8px}
+li::marker{color:var(--ink-3)}
+footer{border-top:1px solid var(--rule); padding-top:20px; margin-top:64px;
+       font-size:13px; color:var(--ink-3); max-width:66ch}
+:focus-visible{outline:2px solid var(--canh); outline-offset:2px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important; transition:none!important}}
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
+  <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+    <path d="M0 0 L10 5 L0 10 z" fill="currentColor"/></marker>
+  <marker id="arh" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
+    <path d="M0 0 L10 5 L0 10 z" fill="#a8560a"/></marker>
+</defs></svg>
+
+<div class="wrap">
+
+<header class="mast">
+  <p class="kicker">Field reference &middot; read-only phase</p>
+  <h1>Crosstrek CAN Tap</h1>
+  <p class="dek">Wiring a CANable 2.0 to a 2024 Subaru Crosstrek: what to build, what to
+  verify on the bench, and how to read the first six seconds of traffic.</p>
+  <div class="specline">
+    <span><b>Vehicle</b> 2024 Crosstrek &middot; 3rd gen</span>
+    <span><b>Adapter</b> CANable 2.0 &middot; candleLight</span>
+    <span><b>Stack</b> SocketCAN / gs_usb</span>
+  </div>
+</header>
+
+<section>
+  <div class="shead"><span class="snum">01</span><h2>Prove the hardware on the bench</h2></div>
+  <p>Two adapters arrived, which is exactly what a bench test wants. Link them to each other
+  and confirm frames cross before the car is involved. If this fails in your kitchen, you do
+  not want to be debugging it in a driveway with the ignition on.</p>
+  <p>This is also the one time the 120&nbsp;&Omega; termination jumpers go <strong>on</strong>.
+  A standalone CAN segment needs a terminator at each physical end &mdash; two jumpers, 60&nbsp;&Omega;
+  across the pair. Remember you did this, because step 03 turns them both back off.</p>
+
+  <figure>
+    <svg viewBox="0 0 720 300" role="img" aria-label="Two CANable 2.0 adapters wired directly to each other with CAN-H and CAN-L, each with its 120 ohm termination jumper enabled, both connected by USB to one laptop.">
+      <!-- laptop -->
+      <rect class="d-box" x="286" y="18" width="148" height="46" rx="3"/>
+      <text class="d-lbl" x="360" y="46" text-anchor="middle">Laptop</text>
+      <!-- usb runs -->
+      <path class="wn" d="M320 64 L320 84 L150 84 L150 108" marker-end="url(#ar)"/>
+      <path class="wn" d="M400 64 L400 84 L570 84 L570 108" marker-end="url(#ar)"/>
+      <text class="d-sub" x="228" y="78" text-anchor="middle">USB</text>
+      <text class="d-sub" x="492" y="78" text-anchor="middle">USB</text>
+      <!-- adapters -->
+      <rect class="d-box" x="60" y="110" width="180" height="86" rx="3"/>
+      <text class="d-lbl" x="150" y="140" text-anchor="middle">CANable 2.0</text>
+      <text class="d-sub" x="150" y="160" text-anchor="middle">can0</text>
+      <rect class="d-box" x="480" y="110" width="180" height="86" rx="3"/>
+      <text class="d-lbl" x="570" y="140" text-anchor="middle">CANable 2.0</text>
+      <text class="d-sub" x="570" y="160" text-anchor="middle">can1</text>
+      <!-- termination jumpers -->
+      <rect x="96" y="170" width="108" height="20" rx="2" fill="none" stroke="var(--ok)" stroke-width="1.5"/>
+      <text class="d-sub tk" x="150" y="184" text-anchor="middle">120 &#937; JUMPER ON</text>
+      <rect x="516" y="170" width="108" height="20" rx="2" fill="none" stroke="var(--ok)" stroke-width="1.5"/>
+      <text class="d-sub tk" x="570" y="184" text-anchor="middle">120 &#937; JUMPER ON</text>
+      <!-- bus wires -->
+      <path class="wh" d="M240 232 L480 232"/>
+      <path class="wl" d="M240 262 L480 262"/>
+      <path class="wn" d="M150 196 L150 232 L240 232"/>
+      <path class="wn" d="M570 196 L570 262 L480 262"/>
+      <circle class="th" cx="240" cy="232" r="3.5"/><circle class="th" cx="480" cy="232" r="3.5"/>
+      <circle class="tl" cx="240" cy="262" r="3.5"/><circle class="tl" cx="480" cy="262" r="3.5"/>
+      <text class="d-txt th" x="360" y="224" text-anchor="middle">CAN&#8209;H &middot; pin 7 &rarr; pin 7</text>
+      <text class="d-txt tl" x="360" y="284" text-anchor="middle">CAN&#8209;L &middot; pin 2 &rarr; pin 2</text>
+    </svg>
+    <figcaption>Bench loopback. Both jumpers enabled gives the 60&nbsp;&Omega; a healthy segment
+    needs. Run <code>cangen can0</code> and watch <code>candump can1</code> &mdash; if frames
+    cross in both directions, the adapters and the driver stack are good.</figcaption>
+  </figure>
+
+  <pre><span class="c"># terminal 1 — bring both up at 500k, normal mode (bench only)</span>
+sudo ip link set can0 type can bitrate 500000 &amp;&amp; sudo ip link set can0 up
+sudo ip link set can1 type can bitrate 500000 &amp;&amp; sudo ip link set can1 up
+
+<span class="c"># terminal 2</span>
+candump can1
+
+<span class="c"># terminal 3 — should appear in terminal 2</span>
+cangen can0 -g 100</pre>
+
+  <p>Confirm CAN FD works too, since a 2024 platform may need it. If this command errors,
+  your firmware is not an FD build and you will want to reflash before the FD probe means
+  anything:</p>
+  <pre>sudo ip link set can0 type can bitrate 500000 dbitrate 2000000 fd on</pre>
+</section>
+
+<section>
+  <div class="shead"><span class="snum">02</span><h2>Build the DE-9 to OBD-II cable</h2></div>
+  <p>Three conductors, and one you deliberately leave out. The adapter uses the standard
+  CiA&nbsp;303-1 DE-9 CAN pinout; the car uses SAE&nbsp;J1962.</p>
+
+  <figure>
+    <svg viewBox="0 0 760 470" role="img" aria-label="Pin mapping from a CANable 2.0 DE-9 connector to a vehicle OBD-II connector: DE-9 pin 7 to OBD pin 6 for CAN-H, DE-9 pin 2 to OBD pin 14 for CAN-L, DE-9 pin 3 to OBD pin 5 for ground, and DE-9 pin 9 deliberately not connected to OBD pin 16.">
+      <text class="d-lbl" x="170" y="30" text-anchor="middle">CANable 2.0 &mdash; DE-9 male</text>
+      <text class="d-sub" x="170" y="47" text-anchor="middle">viewed face-on</text>
+      <text class="d-lbl" x="562" y="30" text-anchor="middle">Vehicle OBD-II &mdash; J1962</text>
+      <text class="d-sub" x="562" y="47" text-anchor="middle">viewed face-on, under dash</text>
+
+      <!-- DE-9 shell -->
+      <path class="d-shell" d="M70 62 L270 62 L255 172 L85 172 Z"/>
+      <!-- DE-9 top row pins 1-5 : x 100,138,176,214,252 y 95 -->
+      <circle class="d-pin" cx="100" cy="95" r="6"/>
+      <circle class="pin-l" cx="138" cy="95" r="8"/>
+      <circle class="pin-g" cx="176" cy="95" r="8"/>
+      <circle class="d-pin" cx="214" cy="95" r="6"/>
+      <circle class="d-pin" cx="252" cy="95" r="6"/>
+      <!-- DE-9 bottom row pins 6-9 : x 119,157,195,233 y 135 -->
+      <circle class="d-pin" cx="119" cy="135" r="6"/>
+      <circle class="pin-h" cx="157" cy="135" r="8"/>
+      <circle class="d-pin" cx="195" cy="135" r="6"/>
+      <circle class="pin-x" cx="233" cy="135" r="8"/>
+      <text class="d-num" x="100" y="80" text-anchor="middle">1</text>
+      <text class="d-num" x="252" y="80" text-anchor="middle">5</text>
+      <text class="d-num" x="119" y="158" text-anchor="middle">6</text>
+      <text class="d-num" x="233" y="158" text-anchor="middle">9</text>
+      <text class="d-num tl" x="138" y="80" text-anchor="middle">2</text>
+      <text class="d-num" x="176" y="80" text-anchor="middle">3</text>
+      <text class="d-num th" x="157" y="158" text-anchor="middle">7</text>
+
+      <!-- OBD shell -->
+      <path class="d-shell" d="M428 62 L698 62 L686 172 L440 172 Z"/>
+      <!-- top row 1-8 : x 448,482,516,550,584,618,652,686-ish -->
+      <circle class="d-pin" cx="450" cy="95" r="6"/>
+      <circle class="d-pin" cx="483" cy="95" r="6"/>
+      <circle class="d-pin" cx="516" cy="95" r="6"/>
+      <circle class="d-pin" cx="549" cy="95" r="6"/>
+      <circle class="pin-g" cx="582" cy="95" r="8"/>
+      <circle class="pin-h" cx="615" cy="95" r="8"/>
+      <circle class="d-pin" cx="648" cy="95" r="6"/>
+      <circle class="d-pin" cx="681" cy="95" r="6"/>
+      <!-- bottom row 9-16 -->
+      <circle class="d-pin" cx="450" cy="135" r="6"/>
+      <circle class="d-pin" cx="483" cy="135" r="6"/>
+      <circle class="d-pin" cx="516" cy="135" r="6"/>
+      <circle class="d-pin" cx="549" cy="135" r="6"/>
+      <circle class="d-pin" cx="582" cy="135" r="6"/>
+      <circle class="pin-l" cx="615" cy="135" r="8"/>
+      <circle class="d-pin" cx="648" cy="135" r="6"/>
+      <circle class="pin-x" cx="681" cy="135" r="8"/>
+      <text class="d-num" x="450" y="80" text-anchor="middle">1</text>
+      <text class="d-num" x="681" y="80" text-anchor="middle">8</text>
+      <text class="d-num" x="450" y="158" text-anchor="middle">9</text>
+      <text class="d-num" x="681" y="158" text-anchor="middle">16</text>
+      <text class="d-num" x="582" y="80" text-anchor="middle">5</text>
+      <text class="d-num th" x="615" y="80" text-anchor="middle">6</text>
+      <text class="d-num tl" x="615" y="158" text-anchor="middle">14</text>
+
+      <!-- vertical adjacency hint -->
+      <path class="wn" d="M636 95 L636 135" stroke-dasharray="3 3" opacity="0.55"/>
+      <text class="d-sub" x="700" y="119">6 sits directly</text>
+      <text class="d-sub" x="700" y="132">above 14</text>
+
+      <!-- wire map band -->
+      <line x1="60" y1="206" x2="700" y2="206" stroke="var(--rule)" stroke-width="1"/>
+      <!-- row 1 CAN-H -->
+      <circle class="pin-h" cx="150" cy="252" r="15"/>
+      <text class="d-num th" x="150" y="256" text-anchor="middle">7</text>
+      <path class="wh" d="M170 252 L520 252"/>
+      <circle class="pin-h" cx="540" cy="252" r="15"/>
+      <text class="d-num th" x="540" y="256" text-anchor="middle">6</text>
+      <text class="d-txt th" x="345" y="243" text-anchor="middle">CAN&#8209;HIGH</text>
+      <text class="d-sub" x="600" y="256">OBD-II</text>
+      <text class="d-sub" x="72" y="256">DE-9</text>
+      <!-- row 2 CAN-L -->
+      <circle class="pin-l" cx="150" cy="306" r="15"/>
+      <text class="d-num tl" x="150" y="310" text-anchor="middle">2</text>
+      <path class="wl" d="M170 306 L520 306"/>
+      <circle class="pin-l" cx="540" cy="306" r="15"/>
+      <text class="d-num tl" x="540" y="310" text-anchor="middle">14</text>
+      <text class="d-txt tl" x="345" y="297" text-anchor="middle">CAN&#8209;LOW</text>
+      <!-- row 3 GND -->
+      <circle class="pin-g" cx="150" cy="360" r="15"/>
+      <text class="d-num" x="150" y="364" text-anchor="middle">3</text>
+      <path class="wg" d="M170 360 L520 360"/>
+      <circle class="pin-g" cx="540" cy="360" r="15"/>
+      <text class="d-num" x="540" y="364" text-anchor="middle">5</text>
+      <text class="d-txt" x="345" y="351" text-anchor="middle">SIGNAL GROUND</text>
+      <!-- row 4 do not connect -->
+      <circle class="pin-x" cx="150" cy="418" r="15"/>
+      <text class="d-num tx" x="150" y="422" text-anchor="middle">9</text>
+      <path class="wx" d="M170 418 L520 418"/>
+      <circle class="pin-x" cx="540" cy="418" r="15"/>
+      <text class="d-num tx" x="540" y="422" text-anchor="middle">16</text>
+      <path d="M328 404 L362 432 M362 404 L328 432" stroke="var(--stop)" stroke-width="3" stroke-linecap="round"/>
+      <text class="d-txt tx" x="345" y="396" text-anchor="middle">+12 V &mdash; LEAVE OUT</text>
+    </svg>
+    <figcaption>Three wires in, one deliberately omitted. Pin 6 sitting directly above pin 14
+    is a useful sanity check on the vehicle connector: CAN-H and CAN-L are vertically adjacent,
+    six across from the left.</figcaption>
+  </figure>
+
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th>Signal</th><th>DE-9</th><th>OBD-II</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td><span class="swatch" style="background:var(--canh)"></span>CAN-H</td>
+          <td class="pin">7</td><td class="pin">6</td><td>Twist with CAN-L</td></tr>
+      <tr><td><span class="swatch" style="background:var(--canl)"></span>CAN-L</td>
+          <td class="pin">2</td><td class="pin">14</td><td>Twist with CAN-H</td></tr>
+      <tr><td><span class="swatch" style="background:var(--ink-3)"></span>Ground</td>
+          <td class="pin">3</td><td class="pin">5</td><td>Signal ground; pin 4 is chassis, acceptable fallback</td></tr>
+      <tr class="no"><td><span class="swatch" style="background:var(--stop)"></span>+12&nbsp;V</td>
+          <td class="pin">9</td><td class="pin">16</td><td>Do not connect &mdash; power the adapter from USB</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <p>Twist the CAN-H and CAN-L conductors together over the length of the cable. This is a
+  differential pair; untwisted flying leads next to an engine bay pick up noise you will
+  later mistake for data.</p>
+
+  <div class="call warn">
+    <h3>Verify before you plug in</h3>
+    <p>Connector orientation is the single easiest thing to get backwards, and the numbers
+    molded into the shells are the authority &mdash; not this drawing. Continuity-test the
+    finished cable with a multimeter, DE-9 pin to OBD-II pin, before it goes near the car.</p>
+  </div>
+
+  <div class="call">
+    <h3>Why pin 16 stays disconnected</h3>
+    <p>OBD-II pin 16 is battery positive and live with the key out. Feeding it into a
+    USB-powered adapter that shares ground with your laptop creates a second path to
+    vehicle ground &mdash; a ground loop that can inject noise, and in the bad case put
+    vehicle current somewhere it was not meant to go.</p>
+    <p>Run the laptop on battery, not on a charger sharing building ground, for the same reason.</p>
+  </div>
+</section>
+
+<section>
+  <div class="shead"><span class="snum">03</span><h2>Turn the termination jumpers back off</h2></div>
+  <p>The vehicle bus is already a properly terminated segment: 120&nbsp;&Omega; at each end,
+  60&nbsp;&Omega; across the pair. Your adapter is joining in the middle as a listener, not
+  extending the end of the bus. Adding a third terminator drops the bus to roughly
+  40&nbsp;&Omega;, which degrades signal integrity for every module on it.</p>
+
+  <figure>
+    <svg viewBox="0 0 720 260" role="img" aria-label="The vehicle CAN bus already has a 120 ohm terminator at each end for 60 ohms total. The CANable taps in the middle at the OBD-II connector with its own termination jumper disabled, so it does not add a third terminator.">
+      <!-- backbone -->
+      <path class="wh" d="M90 96 L630 96"/>
+      <path class="wl" d="M90 128 L630 128"/>
+      <!-- terminators -->
+      <rect x="62" y="88" width="28" height="48" rx="2" fill="var(--surface-2)" stroke="var(--ok)" stroke-width="2"/>
+      <rect x="630" y="88" width="28" height="48" rx="2" fill="var(--surface-2)" stroke="var(--ok)" stroke-width="2"/>
+      <text class="d-sub tk" x="76" y="76" text-anchor="middle">120 &#937;</text>
+      <text class="d-sub tk" x="644" y="76" text-anchor="middle">120 &#937;</text>
+      <text class="d-sub" x="76" y="156" text-anchor="middle">bus end</text>
+      <text class="d-sub" x="644" y="156" text-anchor="middle">bus end</text>
+      <!-- ECUs on the bus -->
+      <rect class="d-box" x="150" y="26" width="92" height="34" rx="3"/>
+      <text class="d-txt" x="196" y="48" text-anchor="middle">ECM</text>
+      <path class="wn" d="M196 60 L196 96"/>
+      <rect class="d-box" x="470" y="26" width="92" height="34" rx="3"/>
+      <text class="d-txt" x="516" y="48" text-anchor="middle">VDC / ABS</text>
+      <path class="wn" d="M516 60 L516 96"/>
+      <!-- OBD tap -->
+      <path class="wn" d="M360 128 L360 178"/>
+      <circle class="th" cx="360" cy="96" r="4"/><circle class="tl" cx="360" cy="128" r="4"/>
+      <rect class="d-box" x="292" y="178" width="136" height="34" rx="3"/>
+      <text class="d-txt" x="360" y="200" text-anchor="middle">OBD-II connector</text>
+      <path class="wn" d="M360 212 L360 240" marker-end="url(#ar)"/>
+      <text class="d-lbl" x="380" y="244">CANable 2.0</text>
+      <rect x="446" y="228" width="150" height="22" rx="2" fill="none" stroke="var(--stop)" stroke-width="1.5"/>
+      <text class="d-sub tx" x="521" y="243" text-anchor="middle">120 &#937; JUMPER OFF</text>
+    </svg>
+    <figcaption>The adapter is a mid-bus listener, not a bus end. Both jumpers you enabled for
+    the bench test come back off before the cable meets the car.</figcaption>
+  </figure>
+
+  <p>You can confirm it from outside: with the ignition off and the adapter unplugged,
+  measuring resistance across OBD-II pins 6 and 14 should read near 60&nbsp;&Omega;. Around
+  120&nbsp;&Omega; means one terminator is missing or you are on a segment that is not what
+  you think it is.</p>
+</section>
+
+<section>
+  <div class="shead"><span class="snum">04</span><h2>Read the first six seconds</h2></div>
+  <p>Ignition on, engine off, then run the probe. It sweeps classic 500k, CAN FD at two data
+  rates, then the slower body-bus candidates, listen-only throughout. What matters is not just
+  whether frames appear &mdash; it is what the CAN controller's error state says when they don't.</p>
+
+  <pre>cd canbus &amp;&amp; ./bringup.sh</pre>
+
+  <figure>
+    <svg viewBox="0 0 720 400" role="img" aria-label="Decision tree: if frames appear, proceed to capture. If silent with error-warning or error-passive state, the bit timing is wrong. If silent with error-active state, the OBD port is likely gateway-filtered.">
+      <rect class="d-box" x="264" y="14" width="192" height="44" rx="3"/>
+      <text class="d-lbl" x="360" y="41" text-anchor="middle">./bringup.sh</text>
+      <path class="wn" d="M360 58 L360 92" marker-end="url(#ar)"/>
+
+      <path class="d-box" d="M360 96 L488 134 L360 172 L232 134 Z"/>
+      <text class="d-txt" x="360" y="130" text-anchor="middle">Any frames</text>
+      <text class="d-txt" x="360" y="146" text-anchor="middle">captured?</text>
+
+      <!-- yes branch -->
+      <path class="wn" d="M488 134 L590 134 L590 176" marker-end="url(#ar)"/>
+      <text class="d-sub tk" x="539" y="126" text-anchor="middle">YES</text>
+      <rect class="d-box" x="500" y="180" width="180" height="62" rx="3" stroke="var(--ok)"/>
+      <text class="d-txt tk" x="590" y="204" text-anchor="middle">Bus is open</text>
+      <text class="d-sub" x="590" y="223" text-anchor="middle">Note which config won,</text>
+      <text class="d-sub" x="590" y="236" text-anchor="middle">go to capture.sh</text>
+
+      <!-- no branch -->
+      <path class="wn" d="M360 172 L360 208" marker-end="url(#ar)"/>
+      <text class="d-sub" x="378" y="194">NO</text>
+      <path class="d-box" d="M360 212 L500 252 L360 292 L220 252 Z"/>
+      <text class="d-txt" x="360" y="248" text-anchor="middle">Controller error</text>
+      <text class="d-txt" x="360" y="264" text-anchor="middle">state?</text>
+
+      <path class="wn" d="M220 252 L120 252 L120 300" marker-end="url(#ar)"/>
+      <text class="d-sub th" x="170" y="244" text-anchor="middle">WARNING / PASSIVE</text>
+      <rect class="d-box" x="24" y="304" width="192" height="76" rx="3" stroke="var(--canh)"/>
+      <text class="d-txt th" x="120" y="328" text-anchor="middle">Wrong bit timing</text>
+      <text class="d-sub" x="120" y="347" text-anchor="middle">Traffic is there; you are</text>
+      <text class="d-sub" x="120" y="360" text-anchor="middle">misconfigured. Widen the</text>
+      <text class="d-sub" x="120" y="373" text-anchor="middle">candidate list.</text>
+
+      <path class="wn" d="M500 252 L604 252 L604 300" marker-end="url(#ar)"/>
+      <text class="d-sub tx" x="552" y="244" text-anchor="middle">ERROR-ACTIVE</text>
+      <rect class="d-box" x="508" y="304" width="192" height="76" rx="3" stroke="var(--stop)"/>
+      <text class="d-txt tx" x="604" y="328" text-anchor="middle">Likely gatewayed</text>
+      <text class="d-sub" x="604" y="347" text-anchor="middle">Bus genuinely quiet here.</text>
+      <text class="d-sub" x="604" y="360" text-anchor="middle">Confirm with a diagnostic</text>
+      <text class="d-sub" x="604" y="373" text-anchor="middle">request. See 05.</text>
+    </svg>
+    <figcaption>Silence has two very different causes, and the controller error state
+    separates them. Error frames mean traffic is present and you are mistuned; a clean
+    error-active state with nothing arriving means nothing is being broadcast at that connector.</figcaption>
+  </figure>
+
+  <p>Modules go to sleep after a few idle minutes. If everything reads silent, cycle the
+  ignition and run it again before concluding anything.</p>
+</section>
+
+<section>
+  <div class="shead"><span class="snum">05</span><h2>If the port is gatewayed</h2></div>
+  <p>This is the outcome that decides how large the project is, so establish it before
+  investing in captures. Bring the interface up <strong>without</strong> listen-only and send
+  a standard diagnostic request. A reply with no other traffic is the signature of a gateway
+  that passes request-and-response but filters out everything the modules broadcast to each other.</p>
+
+  <pre><span class="c"># normal mode — needed to transmit the request at all</span>
+sudo ip link set can0 down
+sudo ip link set can0 type can bitrate 500000 &amp;&amp; sudo ip link set can0 up
+candump can0 &amp;
+cansend can0 7DF#0201050000000000   <span class="c"># request coolant temp</span></pre>
+
+  <figure>
+    <svg viewBox="0 0 720 340" role="img" aria-label="Comparison of an open OBD port where all broadcast traffic reaches the adapter, versus a gateway-filtered port where only diagnostic request and response pass and the real bus must be tapped upstream at the body integrated unit.">
+      <text class="d-lbl tk" x="14" y="22">A &middot; Open port</text>
+      <text class="d-lbl tx" x="392" y="22">B &middot; Gateway-filtered</text>
+      <line x1="360" y1="8" x2="360" y2="330" stroke="var(--rule)" stroke-width="1"/>
+
+      <!-- A -->
+      <rect class="d-box" x="20" y="44" width="300" height="46" rx="3"/>
+      <text class="d-txt" x="170" y="72" text-anchor="middle">Vehicle bus &middot; all broadcast frames</text>
+      <path class="wh" d="M170 90 L170 140" marker-end="url(#arh)"/>
+      <text class="d-sub tk" x="186" y="119">everything passes</text>
+      <rect class="d-box" x="60" y="144" width="220" height="42" rx="3"/>
+      <text class="d-txt" x="170" y="170" text-anchor="middle">OBD-II connector</text>
+      <path class="wn" d="M170 186 L170 224" marker-end="url(#ar)"/>
+      <rect class="d-box" x="60" y="228" width="220" height="42" rx="3" stroke="var(--ok)"/>
+      <text class="d-txt tk" x="170" y="254" text-anchor="middle">CANable sees traffic</text>
+      <text class="d-sub" x="170" y="296" text-anchor="middle">Tap at the OBD port. Proceed</text>
+      <text class="d-sub" x="170" y="310" text-anchor="middle">to capture and event diffing.</text>
+
+      <!-- B -->
+      <rect class="d-box" x="400" y="44" width="300" height="46" rx="3"/>
+      <text class="d-txt" x="550" y="72" text-anchor="middle">Vehicle bus &middot; all broadcast frames</text>
+      <!-- gateway -->
+      <rect x="470" y="102" width="160" height="30" rx="2" fill="var(--surface-2)" stroke="var(--stop)" stroke-width="2"/>
+      <text class="d-sub tx" x="550" y="122" text-anchor="middle">GATEWAY / FILTER</text>
+      <path class="wn" d="M550 90 L550 102"/>
+      <path class="wx" d="M550 132 L550 166" marker-end="url(#ar)"/>
+      <text class="d-sub tx" x="566" y="153">7DF / 7E8 only</text>
+      <rect class="d-box" x="440" y="170" width="220" height="42" rx="3"/>
+      <text class="d-txt" x="550" y="196" text-anchor="middle">OBD-II connector</text>
+      <!-- upstream tap -->
+      <path class="wn" d="M400 67 L378 67 L378 244 L440 244" marker-end="url(#ar)"/>
+      <rect class="d-box" x="444" y="224" width="240" height="60" rx="3" stroke="var(--canh)"/>
+      <text class="d-txt th" x="564" y="248" text-anchor="middle">Tap upstream instead</text>
+      <text class="d-sub" x="564" y="267" text-anchor="middle">Body integrated unit, behind</text>
+      <text class="d-sub" x="564" y="280" text-anchor="middle">the driver kick panel</text>
+      <text class="d-sub" x="550" y="316" text-anchor="middle">Bigger job: harness work, not a plug-in cable.</text>
+    </svg>
+    <figcaption>The difference is where you can tap, not whether the data exists. A gateway does
+    not stop modules talking to each other &mdash; it stops that conversation reaching the
+    diagnostic connector, so the tap point moves upstream of the filter.</figcaption>
+  </figure>
+</section>
+
+<section>
+  <div class="shead"><span class="snum">06</span><h2>Once traffic is flowing</h2></div>
+  <p>The capture and analysis tooling is on the branch. The pattern for isolating any
+  control input is the same: record nothing happening, record one thing happening, diff.</p>
+  <pre><span class="c"># baseline — touch nothing</span>
+./capture.sh baseline -t 60
+
+<span class="c"># one control, actuated repeatedly</span>
+./capture.sh avh-button -t 60 -n "pressed x8"
+
+<span class="c"># bits that took a value never seen at rest</span>
+tools/event_diff.py logs/baseline-*.log logs/avh-button-*.log
+
+<span class="c"># how much of an existing Subaru DBC actually applies</span>
+tools/decode.py --dbc subaru_global_2017_generated.dbc logs/baseline-*.log</pre>
+  <p>Nothing the diff prints is a result until it reproduces. Re-run both captures, watch the
+  candidate live with <code>cansniffer -c can0</code>, and capture the inverse action to
+  confirm the bit clears.</p>
+
+  <div class="call">
+    <h3>Still read-only</h3>
+    <p>Everything above listens. Transmitting to make a feature turn itself on at startup
+    is a separate design problem with real prerequisites &mdash; rolling counters, checksums,
+    which module arbitrates the request, and what happens when a replayed frame and the
+    physical button disagree.</p>
+    <p>On a 2024 car the chassis and EyeSight messaging is still being worked out by the
+    community, and a module that latches a fault has no undo. Finish the capture work first;
+    it is a prerequisite either way.</p>
+  </div>
+</section>
+
+<footer>
+  Pin assignments per SAE J1962 (vehicle diagnostic connector) and CiA 303-1 (DE-9 CAN).
+  Verify against the numbering molded into your connectors and continuity-test the cable
+  before use. Tooling lives in <code>canbus/</code> on
+  <code>claude/crosstrek-canbus-setup-wu6290</code>.
+</footer>
+
+</div>
